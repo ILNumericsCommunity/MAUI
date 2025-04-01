@@ -1,54 +1,41 @@
 using ILNumerics.Drawing;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Graphics;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
-using Microsoft.Maui.Graphics.Skia;
 using SkiaSharp;
+using SkiaSharp.Views.Maui;
+using SkiaSharp.Views.Maui.Controls;
 using Color = System.Drawing.Color;
+using Point = System.Drawing.Point;
+using PointF = System.Drawing.PointF;
 
 namespace ILNumerics.Community.MAUI;
 
 /// <summary>
 /// .NET MAUI rendering panel for ILNumerics (based on GDI driver)
 /// </summary>
-public sealed class Panel : GraphicsView, IDriver, IDrawable
+public sealed class Panel : SKCanvasView, IDriver
 {
     private readonly Clock _clock;
     private readonly GDIDriver _driver;
     private readonly InputController _inputController;
 
-    //public static readonly BindableProperty IsVerticalProperty = BindableProperty.Create(nameof(IsVertical), typeof(bool), typeof(ProgressBar), false,
-    //                                                                                     propertyChanged: (bindableObject, oldValue, newValue) =>
-    //                                                                                     {
-    //                                                                                         if (newValue != null && bindableObject is ProgressBar progressBar)
-    //                                                                                         {
-    //                                                                                             progressBar.UpdateIsVertical();
-
-    //                                                                                             progressBar.Invalidate();
-    //                                                                                         }
-    //                                                                                     });
-
-    //public bool IsVertical
-    //{
-    //    get { return (bool) GetValue(IsVerticalProperty); }
-    //    set { SetValue(IsVerticalProperty, value); }
-    //}
-
     public Panel()
     {
         _clock = new Clock { Running = false };
 
-        _driver = new GDIDriver(new BackBuffer { Rectangle = new Rectangle(0, 0, (int) Bounds.Width, (int) Bounds.Height) });
+        //_driver = new GDIDriver(new BackBuffer { Rectangle = new Rectangle(0, 0, (int) Bounds.Width, (int) Bounds.Height) });
+        _driver = new GDIDriver(new BackBuffer());
         _driver.FPSChanged += (_, _) => OnFPSChanged();
         _driver.BeginRenderFrame += (_, a) => OnBeginRenderFrame(a.Parameter);
         _driver.EndRenderFrame += (_, a) => OnEndRenderFrame(a.Parameter);
         _driver.RenderingFailed += (_, a) => OnRenderingFailed(a.Exception, a.Timeout);
-
+        
         _inputController = new InputController(this);
         //Tapped += (_, a) => OnTapped(a);
         //DoubleTapped += (_, a) => OnDoubleTapped(a);
+        
+        EnableTouchEvents = true;
     }
 
     #region Implementation of IDriver
@@ -115,7 +102,7 @@ public sealed class Panel : GraphicsView, IDriver, IDrawable
     /// <inheritdoc />
     public void Render(long timeMs)
     {
-        Invalidate();
+        InvalidateSurface();
     }
 
     /// <inheritdoc />
@@ -202,202 +189,118 @@ public sealed class Panel : GraphicsView, IDriver, IDrawable
 
     #endregion
 
-    #region Implementation of IDrawable
+    #region Overrides of SKCanvasView
 
-    public void Draw(ICanvas canvas, RectF dirtyRect)
+    /// <inheritdoc />
+    protected override void OnPaintSurface(SKPaintSurfaceEventArgs e)
     {
+        base.OnPaintSurface(e);
+
+        SKCanvas canvas = e.Surface.Canvas;
+
+        var bounds = canvas.LocalClipBounds;
+        var rectangle = new Rectangle(0, 0, (int) bounds.Width, (int) bounds.Height);
+
+        _driver.BackBuffer.Rectangle = rectangle;
         _driver.Configure();
         _driver.Render();
 
-        canvas.SaveState();
-
-        //canvas.SetFillPaint(StrokePaint, dirtyRect);
+        canvas.Clear();
 
         BitmapData? srcBmpData = null;
         try
         {
-            srcBmpData = _driver.BackBuffer.Bitmap.LockBits(new Rectangle(0, 0, (int) Bounds.Width, (int) Bounds.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            srcBmpData = _driver.BackBuffer.Bitmap.LockBits(rectangle, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
 
-            var bitmap = new SKBitmap((int) Bounds.Width, (int) Bounds.Height, SKColorType.Rgba8888, SKAlphaType.Premul);
+            var bitmap = new SKBitmap(rectangle.Width, rectangle.Height, SKColorType.Rgba8888, SKAlphaType.Premul);
             bitmap.InstallPixels(bitmap.Info, srcBmpData.Scan0, bitmap.RowBytes);
 
-            var image = new SkiaImage(bitmap);
-            canvas.DrawImage(image, 0, 0, (int) Bounds.Width, (int) Bounds.Height);
+            canvas.DrawBitmap(bitmap, bounds);
         }
         finally
         {
             if (srcBmpData != null)
                 _driver.BackBuffer.Bitmap.UnlockBits(srcBmpData);
         }
-
-        canvas.RestoreState();
     }
 
     #endregion
 
-    //#region PointerEventHandlers
+    #region TouchEventHandlers
 
-    ///// <inheritdoc />
-    //protected override void OnSizeChanged(SizeChangedEventArgs e)
-    //{
-    //    if (Bounds.Width > 0 && Bounds.Height > 0)
-    //    {
-    //        _driver.Size = new System.Drawing.Size((int) Bounds.Width, (int) Bounds.Height);
-    //        InvalidateVisual();
-    //    }
+    /// <inheritdoc />
+    protected override void OnTouch(SKTouchEventArgs e)
+    {
+        base.OnTouch(e);
 
-    //    base.OnSizeChanged(e);
-    //}
-
-    ///// <inheritdoc />
-    //protected override void OnPointerEntered(PointerEventArgs e)
-    //{
-    //    _inputController.OnMouseEnter(MouseEventArgs.Empty);
-
-    //    base.OnPointerEntered(e);
-    //}
-
-    ///// <inheritdoc />
-    //protected override void OnPointerExited(PointerEventArgs e)
-    //{
-    //    _inputController.OnMouseLeave(MouseEventArgs.Empty);
-
-    //    base.OnPointerExited(e);
-    //}
-
-    ///// <inheritdoc />
-    //protected override void OnPointerMoved(PointerEventArgs e)
-    //{
-    //    _inputController.OnMouseMove(PointerMovedMouseEvent(e, Bounds, _clock.TimeMilliseconds));
-
-    //    base.OnPointerMoved(e);
-    //}
-
-    ///// <inheritdoc />
-    //protected override void OnPointerPressed(PointerPressedEventArgs e)
-    //{
-    //    _inputController.OnMouseDown(PointerPressedMouseEvent(e, Bounds, _clock.TimeMilliseconds));
-
-    //    base.OnPointerPressed(e);
-    //}
-
-    ///// <inheritdoc />
-    //protected override void OnPointerReleased(PointerReleasedEventArgs e)
-    //{
-    //    _inputController.OnMouseUp(PointerReleasedMouseEvent(e, Bounds, _clock.TimeMilliseconds));
-
-    //    base.OnPointerReleased(e);
-    //}
-
-    ///// <inheritdoc />
-    //protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
-    //{
-    //    _inputController.OnMouseWheel(WheelMouseEvent(e, Bounds, _clock.TimeMilliseconds));
-
-    //    base.OnPointerWheelChanged(e);
-    //}
+        switch (e.ActionType)
+        {
+            case SKTouchAction.Entered:
+                _inputController.OnMouseEnter(MouseEventArgs.Empty);
+                break;
+            case SKTouchAction.Pressed:
+                _inputController.OnMouseDown(PointerEvent(e, CanvasSize, _clock.TimeMilliseconds));
+                break;
+            case SKTouchAction.Moved:
+                _inputController.OnMouseMove(PointerEvent(e, CanvasSize, _clock.TimeMilliseconds));
+                break;
+            case SKTouchAction.Released:
+                _inputController.OnMouseUp(PointerEvent(e, CanvasSize, _clock.TimeMilliseconds));
+                break;
+            case SKTouchAction.Cancelled:
+                break;
+            case SKTouchAction.Exited:
+                _inputController.OnMouseLeave(MouseEventArgs.Empty);
+                break;
+            case SKTouchAction.WheelChanged:
+                _inputController.OnMouseWheel(PointerEvent(e, CanvasSize, _clock.TimeMilliseconds));
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
 
     //private void OnTapped(TappedEventArgs e)
     //{
-    //    _inputController.OnMouseClick(TappedMouseEvent(e, 1, Bounds, _clock.TimeMilliseconds));
+    //    _inputController.OnMouseClick(TappedMouseEvent(e, 1, CanvasSize, _clock.TimeMilliseconds));
     //}
 
     //private void OnDoubleTapped(TappedEventArgs e)
     //{
-    //    _inputController.OnMouseDoubleClick(TappedMouseEvent(e, 2, Bounds, _clock.TimeMilliseconds));
+    //    _inputController.OnMouseDoubleClick(TappedMouseEvent(e, 2, CanvasSize, _clock.TimeMilliseconds));
     //}
 
-    //#endregion
+    #endregion
 
-    //#region MouseEventConversion
+    #region MouseEventConversion
 
-    //private MouseEventArgs PointerMovedMouseEvent(PointerEventArgs args, Rect rect, long timeMS)
-    //{
-    //    var point = args.GetCurrentPoint(this);
-    //    var location = new System.Drawing.Point((int) point.Position.X, (int) point.Position.Y);
+    private MouseEventArgs PointerEvent(SKTouchEventArgs args, SKSize rect, long timeMS)
+    {
+        var point = args.Location;
+        var location = new Point((int) point.X, (int) point.Y);
 
-    //    var x = point.Position.X / rect.Width;
-    //    var y = point.Position.Y / rect.Height;
-    //    var locationF = new PointF((float) x, (float) y);
+        var x = point.X / rect.Width;
+        var y = point.Y / rect.Height;
+        var locationF = new PointF(x, y);
 
-    //    var shift = (args.KeyModifiers & KeyModifiers.Shift) != 0;
-    //    var alt = (args.KeyModifiers & KeyModifiers.Alt) != 0;
-    //    var ctrl = (args.KeyModifiers & KeyModifiers.Control) != 0;
+        //var shift = (args.KeyModifiers & KeyModifiers.Shift) != 0;
+        //var alt = (args.KeyModifiers & KeyModifiers.Alt) != 0;
+        //var ctrl = (args.KeyModifiers & KeyModifiers.Control) != 0;
+        var shift = false;
+        var alt = false;
+        var ctrl = false;
 
-    //    var buttons = MouseButtons.None;
-    //    if (point.Properties.IsLeftButtonPressed)
-    //        buttons = MouseButtons.Left;
-    //    else if (point.Properties.IsMiddleButtonPressed)
-    //        buttons = MouseButtons.Center;
-    //    else if (point.Properties.IsRightButtonPressed)
-    //        buttons = MouseButtons.Right;
+        var buttons = MouseButtons.None;
+        if (args.MouseButton == SKMouseButton.Left)
+            buttons = MouseButtons.Left;
+        else if (args.MouseButton == SKMouseButton.Middle)
+            buttons = MouseButtons.Center;
+        else if (args.MouseButton == SKMouseButton.Right)
+            buttons = MouseButtons.Right;
 
-    //    return new MouseEventArgs(locationF, location, shift, alt, ctrl) { TimeMS = timeMS, Button = buttons };
-    //}
-
-    //private MouseEventArgs PointerPressedMouseEvent(PointerPressedEventArgs args, Rect rect, long timeMS)
-    //{
-    //    var point = args.GetCurrentPoint(this);
-    //    var location = new System.Drawing.Point((int) point.Position.X, (int) point.Position.Y);
-
-    //    var x = point.Position.X / rect.Width;
-    //    var y = point.Position.Y / rect.Height;
-    //    var locationF = new PointF((float) x, (float) y);
-
-    //    var shift = (args.KeyModifiers & KeyModifiers.Shift) != 0;
-    //    var alt = (args.KeyModifiers & KeyModifiers.Alt) != 0;
-    //    var ctrl = (args.KeyModifiers & KeyModifiers.Control) != 0;
-
-    //    var buttons = MouseButtons.None;
-    //    if (point.Properties.IsLeftButtonPressed)
-    //        buttons = MouseButtons.Left;
-    //    else if (point.Properties.IsMiddleButtonPressed)
-    //        buttons = MouseButtons.Center;
-    //    else if (point.Properties.IsRightButtonPressed)
-    //        buttons = MouseButtons.Right;
-
-    //    return new MouseEventArgs(locationF, location, shift, alt, ctrl) { TimeMS = timeMS, Button = buttons, Clicks = args.ClickCount };
-    //}
-
-    //private MouseEventArgs PointerReleasedMouseEvent(PointerReleasedEventArgs args, Rect rect, long timeMS)
-    //{
-    //    var point = args.GetCurrentPoint(this);
-    //    var location = new System.Drawing.Point((int) point.Position.X, (int) point.Position.Y);
-
-    //    var x = point.Position.X / rect.Width;
-    //    var y = point.Position.Y / rect.Height;
-    //    var locationF = new PointF((float) x, (float) y);
-
-    //    var shift = (args.KeyModifiers & KeyModifiers.Shift) != 0;
-    //    var alt = (args.KeyModifiers & KeyModifiers.Alt) != 0;
-    //    var ctrl = (args.KeyModifiers & KeyModifiers.Control) != 0;
-
-    //    var buttons = MouseButtons.None;
-    //    if (point.Properties.IsLeftButtonPressed)
-    //        buttons = MouseButtons.Left;
-    //    else if (point.Properties.IsMiddleButtonPressed)
-    //        buttons = MouseButtons.Center;
-    //    else if (point.Properties.IsRightButtonPressed)
-    //        buttons = MouseButtons.Right;
-
-    //    return new MouseEventArgs(locationF, location, shift, alt, ctrl) { TimeMS = timeMS, Button = buttons };
-    //}
-
-    //private MouseEventArgs WheelMouseEvent(PointerWheelEventArgs args, Rect rect, long timeMS)
-    //{
-    //    var point = args.GetCurrentPoint(this);
-    //    var location = new System.Drawing.Point((int) point.Position.X, (int) point.Position.Y);
-
-    //    var x = point.Position.X / rect.Width;
-    //    var y = point.Position.Y / rect.Height;
-    //    var locationF = new PointF((float) x, (float) y);
-
-    //    var shift = (args.KeyModifiers & KeyModifiers.Shift) != 0;
-    //    var alt = (args.KeyModifiers & KeyModifiers.Alt) != 0;
-    //    var ctrl = (args.KeyModifiers & KeyModifiers.Control) != 0;
-
-    //    return new MouseEventArgs(locationF, location, shift, alt, ctrl) { TimeMS = timeMS, Delta = (int) args.Delta.Y };
-    //}
+        return new MouseEventArgs(locationF, location, shift, alt, ctrl) { TimeMS = timeMS, Button = buttons, Delta = args.WheelDelta };
+        //return new MouseEventArgs(locationF, location, shift, alt, ctrl) { TimeMS = timeMS, Button = buttons, Clicks = args.ClickCount, Delta = args.WheelDelta };
+    }
 
     //private MouseEventArgs TappedMouseEvent(TappedEventArgs args, int clickCount, Rect rect, long timeMS)
     //{
@@ -415,5 +318,5 @@ public sealed class Panel : GraphicsView, IDriver, IDrawable
     //    return new MouseEventArgs(locationF, location, shift, alt, ctrl) { TimeMS = timeMS, Button = MouseButtons.Left, Clicks = clickCount };
     //}
 
-    //#endregion
+    #endregion
 }

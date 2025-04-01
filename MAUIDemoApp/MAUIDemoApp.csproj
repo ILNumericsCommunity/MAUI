@@ -1,4 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  
+  <!-- Ensure MinVer is invoked early, before MAUI generate manifest files -->
+  <Target Name="MinVerEarly" BeforeTargets="MauiGeneratePackageAppxManifest">
+    <MSBuild Projects="$(MSBuildProjectFile)" Targets="MinVer" />
+  </Target>
 
 	<PropertyGroup>
     <TargetFrameworks>net8.0-windows10.0.19041.0</TargetFrameworks>
@@ -59,6 +64,10 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
+    <PackageReference Include="MinVer" Version="6.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
 	</ItemGroup>
 
 	<ItemGroup>
