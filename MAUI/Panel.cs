@@ -102,8 +102,8 @@ public sealed class Panel : GraphicsView, IDriver, IDrawable
     /// <summary>Set and gets the background color in Avalonia.</summary>
     public Color Background
     {
-        get { return new Color(_driver.BackColor.A, _driver.BackColor.R, _driver.BackColor.G, _driver.BackColor.B); }
-        set { _driver.BackColor = System.Drawing.Color.FromArgb(value.A, value.R, value.G, value.B); }
+        get { return _driver.BackColor; }
+        set { _driver.BackColor = value; }
     }
 
     /// <inheritdoc />
@@ -115,7 +115,7 @@ public sealed class Panel : GraphicsView, IDriver, IDrawable
     /// <inheritdoc />
     public void Render(long timeMs)
     {
-        InvalidateVisual();
+        Invalidate();
     }
 
     /// <inheritdoc />

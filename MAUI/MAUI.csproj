@@ -1,23 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-		<TargetFrameworks>net8.0;net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(MSBuildRuntimeType)' == 'Full'">$(TargetFrameworks);net8.0-windows10.0.19041</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+		<!--<TargetFrameworks>net8.0;net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(MSBuildRuntimeType)' == 'Full'">$(TargetFrameworks);net8.0-windows10.0.19041</TargetFrameworks>-->
 		<UseMaui>true</UseMaui>
-		<SingleProject>true</SingleProject>
     <RootNamespace>ILNumerics.Community.MAUI</RootNamespace>
     <AssemblyName>ILNumerics.Community.MAUI</AssemblyName>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-ios|AnyCPU'">
-	  <CreatePackage>false</CreatePackage>
 	</PropertyGroup>
   
   <ItemGroup>
     <PackageReference Include="ILNumerics.Computing" Version="7.1.22" />
     <PackageReference Include="ILNumerics.Drawing" Version="7.1.22" />
     <PackageReference Include="ILNumerics.Toolboxes.Drawing2" Version="7.1.22" />
-    <PackageReference Include="AnyAscii" Version="0.3.2" />
-    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.50" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
+    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="8.0.100" />
     <PackageReference Include="MinVer" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

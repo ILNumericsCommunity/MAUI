@@ -28,13 +28,11 @@
 		<LangVersion>12.0</LangVersion>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>false</ImplicitUsings>
-		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 	</PropertyGroup>
 	<!-- Assembly Info -->
 	<PropertyGroup>
-		<Product>ILNumerics.Community.Avalonia (by the ILNumerics Community)</Product>
-		<Description>Interop package for ILNumerics (http://ilnumerics.net/) scene graphs and plot cubes with Avalonia (https://avaloniaui.net/platforms) UI framework</Description>
+		<Product>ILNumerics.Community.MAUI (by the ILNumerics Community)</Product>
+		<Description>Interop package for ILNumerics (http://ilnumerics.net/) scene graphs and plot cubes with .NET Multi-platform App UI (https://dotnet.microsoft.com/apps/maui) framework.</Description>
 		<Authors>Thilo Viereck</Authors>
 		<Company></Company>
 		<Copyright>Copyright &#169; Thilo Viereck &amp; ILNumerics Community 2025-$([System.DateTime]::Now.ToString(`yyyy`))</Copyright>
@@ -42,8 +40,8 @@
 		<!--<PackageIcon>logo.png</PackageIcon>-->
 		<PackageReadmeFile>Readme.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageProjectUrl>https://github.com/ILNumericsCommunity/Avalonia</PackageProjectUrl>
-    	<RepositoryUrl>https://github.com/ILNumericsCommunity/Avalonia</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/ILNumericsCommunity/MAUI</PackageProjectUrl>
+    	<RepositoryUrl>https://github.com/ILNumericsCommunity/MAUI</RepositoryUrl>
     	<RepositoryType>git</RepositoryType>
 	</PropertyGroup>
 	<!-- Packaging -->
