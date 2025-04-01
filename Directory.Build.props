@@ -1,0 +1,63 @@
+<Project InitialTargets="GitInfo">
+	<!-- GitInfo (SemVer) -->
+	<Target Name="GitInfo">
+        <Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
+            <Output TaskParameter="ConsoleOutput" PropertyName="GitSHA"/>
+        </Exec>
+		<PropertyGroup>
+			<MinVerMinimumMajorMinor>7.0</MinVerMinimumMajorMinor>
+			<MinVerDefaultPreReleaseIdentifiers>dev</MinVerDefaultPreReleaseIdentifiers>
+			<MinVerBuildMetadata Condition=" '$(Configuration)' == 'Debug' ">$(GitSHA)</MinVerBuildMetadata>
+      <MinVerVerbosity>normal</MinVerVerbosity>
+      <MinVerTagPrefix>v</MinVerTagPrefix>
+    </PropertyGroup>
+  </Target>
+	<Target Name="Versioning" AfterTargets="MinVer">
+		<PropertyGroup>
+			<BuildNumber>$([System.DateTime]::UtcNow.Subtract($([System.DateTime]::Parse("2025/01/01"))).TotalDays.ToString("0"))</BuildNumber>
+			<Version>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)-dev+$(GitSHA)</Version>
+      <Version Condition=" '$(Configuration)' == 'Release' ">$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</Version>
+			<PackageVersion>$(Version)</PackageVersion>
+		</PropertyGroup>
+		<Message Text="Version: $(Version)" Importance="high"/>
+		<Message Text="FileVersion: $(FileVersion)" Importance="high"/>
+		<Message Text="AssemblyVersion: $(AssemblyVersion)" Importance="high"/>
+	</Target>
+	<!-- Project Defaults  -->
+	<PropertyGroup>
+		<LangVersion>12.0</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>false</ImplicitUsings>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+	</PropertyGroup>
+	<!-- Assembly Info -->
+	<PropertyGroup>
+		<Product>ILNumerics.Community.Avalonia (by the ILNumerics Community)</Product>
+		<Description>Interop package for ILNumerics (http://ilnumerics.net/) scene graphs and plot cubes with Avalonia (https://avaloniaui.net/platforms) UI framework</Description>
+		<Authors>Thilo Viereck</Authors>
+		<Company></Company>
+		<Copyright>Copyright &#169; Thilo Viereck &amp; ILNumerics Community 2025-$([System.DateTime]::Now.ToString(`yyyy`))</Copyright>
+		<DefaultLanguage>en-US</DefaultLanguage>
+		<!--<PackageIcon>logo.png</PackageIcon>-->
+		<PackageReadmeFile>Readme.md</PackageReadmeFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/ILNumericsCommunity/Avalonia</PackageProjectUrl>
+    	<RepositoryUrl>https://github.com/ILNumericsCommunity/Avalonia</RepositoryUrl>
+    	<RepositoryType>git</RepositoryType>
+	</PropertyGroup>
+	<!-- Packaging -->
+	<!--<PropertyGroup Condition="'$(Configuration)' == 'Release'">-->
+	<PropertyGroup>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<!--<IncludeSymbols>true</IncludeSymbols>
+    	<SymbolPackageFormat>snupkg</SymbolPackageFormat>-->
+		<PackageOutputPath>./../</PackageOutputPath>
+	</PropertyGroup>
+	<!-- NuGet Assets -->
+	<ItemGroup>
+    <!-- <None Include="$(SolutionDir)\logo.png" Pack="true" Visible="false" PackagePath="" /> -->
+    <None Include="$(SolutionDir)\Readme.md" Pack="true" Visible="false" PackagePath="Readme.md" />
+  </ItemGroup>
+</Project>
