@@ -1,10 +1,12 @@
+using ILNumerics.Community.MAUI.Services;
 using ILNumerics.Drawing;
-using System;
-using System.Drawing;
-using System.Drawing.Imaging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Maui.Controls;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
+using System;
+using System.Drawing;
 using Color = System.Drawing.Color;
 using Point = System.Drawing.Point;
 using PointF = System.Drawing.PointF;
@@ -20,21 +22,33 @@ public sealed class Panel : SKCanvasView, IDriver
     private readonly GDIDriver _driver;
     private readonly InputController _inputController;
 
+    private IModifierKeyService? _modifierKeyService;
+
+    static Panel()
+    {
+        // Disable GDI+ to ensure consistent rendering across all .NET MAUI platforms (incl. Windows)
+        GDIDriver.IsGDIPlusSupported = false;
+    }
+
     public Panel()
     {
         _clock = new Clock { Running = false };
 
-        //_driver = new GDIDriver(new BackBuffer { Rectangle = new Rectangle(0, 0, (int) Bounds.Width, (int) Bounds.Height) });
-        _driver = new GDIDriver(new BackBuffer());
+        _driver = new GDIDriver(new CommonBackBuffer());
         _driver.FPSChanged += (_, _) => OnFPSChanged();
         _driver.BeginRenderFrame += (_, a) => OnBeginRenderFrame(a.Parameter);
         _driver.EndRenderFrame += (_, a) => OnEndRenderFrame(a.Parameter);
         _driver.RenderingFailed += (_, a) => OnRenderingFailed(a.Exception, a.Timeout);
         
         _inputController = new InputController(this);
-        //Tapped += (_, a) => OnTapped(a);
-        //DoubleTapped += (_, a) => OnDoubleTapped(a);
-        
+
+        var singleTabRecognizer = new TapGestureRecognizer { NumberOfTapsRequired = 1 };
+        singleTabRecognizer.Tapped += (_, a) => OnTapped(a);
+        GestureRecognizers.Add(singleTabRecognizer);
+        var doubleTabRecognizer = new TapGestureRecognizer { NumberOfTapsRequired = 2 };
+        doubleTabRecognizer.Tapped += (_, a) => OnDoubleTapped(a);
+        GestureRecognizers.Add(doubleTabRecognizer);
+
         EnableTouchEvents = true;
     }
 
@@ -86,7 +100,7 @@ public sealed class Panel : SKCanvasView, IDriver
         set { _driver.BackColor = value; }
     }
 
-    /// <summary>Set and gets the background color in Avalonia.</summary>
+    /// <summary>Set and gets the background color in MAUI.</summary>
     public Color Background
     {
         get { return _driver.BackColor; }
@@ -168,7 +182,7 @@ public sealed class Panel : SKCanvasView, IDriver
     }
 
     /// <inheritdoc />
-    public int? PickAt(System.Drawing.Point screenCoords, long timeMs)
+    public int? PickAt(Point screenCoords, long timeMs)
     {
         return _driver.PickAt(screenCoords, timeMs);
     }
@@ -189,6 +203,18 @@ public sealed class Panel : SKCanvasView, IDriver
 
     #endregion
 
+    #region Overrides of VisualElement
+
+    protected override void OnHandlerChanged()
+    {
+        base.OnHandlerChanged();
+
+        // Get the modifier key service from the MAUI context
+        _modifierKeyService = Handler?.MauiContext?.Services.GetRequiredService<IModifierKeyService>();
+    }
+
+    #endregion
+
     #region Overrides of SKCanvasView
 
     /// <inheritdoc />
@@ -196,8 +222,7 @@ public sealed class Panel : SKCanvasView, IDriver
     {
         base.OnPaintSurface(e);
 
-        SKCanvas canvas = e.Surface.Canvas;
-
+        var canvas = e.Surface.Canvas;
         var bounds = canvas.LocalClipBounds;
         var rectangle = new Rectangle(0, 0, (int) bounds.Width, (int) bounds.Height);
 
@@ -207,21 +232,17 @@ public sealed class Panel : SKCanvasView, IDriver
 
         canvas.Clear();
 
-        BitmapData? srcBmpData = null;
-        try
+        if (_driver.BackBuffer is CommonBackBuffer backBuffer)
         {
-            srcBmpData = _driver.BackBuffer.Bitmap.LockBits(rectangle, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            Array<int> pixelBuffer = backBuffer.PixelBuffer;
 
             var bitmap = new SKBitmap(rectangle.Width, rectangle.Height, SKColorType.Rgba8888, SKAlphaType.Premul);
-            bitmap.InstallPixels(bitmap.Info, srcBmpData.Scan0, bitmap.RowBytes);
+            bitmap.InstallPixels(bitmap.Info, pixelBuffer.GetHostPointerForRead(), bitmap.RowBytes);
 
             canvas.DrawBitmap(bitmap, bounds);
         }
-        finally
-        {
-            if (srcBmpData != null)
-                _driver.BackBuffer.Bitmap.UnlockBits(srcBmpData);
-        }
+        else
+            throw new InvalidOperationException("BackBuffer is not of type CommonBackBuffer.");
     }
 
     #endregion
@@ -260,15 +281,15 @@ public sealed class Panel : SKCanvasView, IDriver
         }
     }
 
-    //private void OnTapped(TappedEventArgs e)
-    //{
-    //    _inputController.OnMouseClick(TappedMouseEvent(e, 1, CanvasSize, _clock.TimeMilliseconds));
-    //}
+    private void OnTapped(TappedEventArgs e)
+    {
+        _inputController.OnMouseClick(TappedMouseEvent(e, 1, CanvasSize, _clock.TimeMilliseconds));
+    }
 
-    //private void OnDoubleTapped(TappedEventArgs e)
-    //{
-    //    _inputController.OnMouseDoubleClick(TappedMouseEvent(e, 2, CanvasSize, _clock.TimeMilliseconds));
-    //}
+    private void OnDoubleTapped(TappedEventArgs e)
+    {
+        _inputController.OnMouseDoubleClick(TappedMouseEvent(e, 2, CanvasSize, _clock.TimeMilliseconds));
+    }
 
     #endregion
 
@@ -283,12 +304,9 @@ public sealed class Panel : SKCanvasView, IDriver
         var y = point.Y / rect.Height;
         var locationF = new PointF(x, y);
 
-        //var shift = (args.KeyModifiers & KeyModifiers.Shift) != 0;
-        //var alt = (args.KeyModifiers & KeyModifiers.Alt) != 0;
-        //var ctrl = (args.KeyModifiers & KeyModifiers.Control) != 0;
-        var shift = false;
-        var alt = false;
-        var ctrl = false;
+        var shift = _modifierKeyService?.IsKeyDown(ModifierKeys.Shift) ?? false;
+        var alt = _modifierKeyService?.IsKeyDown(ModifierKeys.Alt) ?? false;
+        var ctrl = _modifierKeyService?.IsKeyDown(ModifierKeys.Control) ?? false;
 
         var buttons = MouseButtons.None;
         if (args.MouseButton == SKMouseButton.Left)
@@ -302,21 +320,21 @@ public sealed class Panel : SKCanvasView, IDriver
         //return new MouseEventArgs(locationF, location, shift, alt, ctrl) { TimeMS = timeMS, Button = buttons, Clicks = args.ClickCount, Delta = args.WheelDelta };
     }
 
-    //private MouseEventArgs TappedMouseEvent(TappedEventArgs args, int clickCount, Rect rect, long timeMS)
-    //{
-    //    var point = args.GetPosition(this);
-    //    var location = new System.Drawing.Point((int) point.X, (int) point.Y);
+    private MouseEventArgs TappedMouseEvent(TappedEventArgs args, int clickCount, SKSize rect, long timeMS)
+    {
+        var point = args.GetPosition(this) ?? Microsoft.Maui.Graphics.Point.Zero;
+        var location = new Point((int) point.X, (int) point.Y);
 
-    //    var x = point.X / rect.Width;
-    //    var y = point.Y / rect.Height;
-    //    var locationF = new PointF((float) x, (float) y);
+        var x = point.X / rect.Width;
+        var y = point.Y / rect.Height;
+        var locationF = new PointF((float) x, (float) y);
 
-    //    var shift = (args.KeyModifiers & KeyModifiers.Shift) != 0;
-    //    var alt = (args.KeyModifiers & KeyModifiers.Alt) != 0;
-    //    var ctrl = (args.KeyModifiers & KeyModifiers.Control) != 0;
+        var shift = _modifierKeyService?.IsKeyDown(ModifierKeys.Shift) ?? false;
+        var alt = _modifierKeyService?.IsKeyDown(ModifierKeys.Alt) ?? false;
+        var ctrl = _modifierKeyService?.IsKeyDown(ModifierKeys.Control) ?? false;
 
-    //    return new MouseEventArgs(locationF, location, shift, alt, ctrl) { TimeMS = timeMS, Button = MouseButtons.Left, Clicks = clickCount };
-    //}
+        return new MouseEventArgs(locationF, location, shift, alt, ctrl) { TimeMS = timeMS, Button = MouseButtons.Left, Clicks = clickCount };
+    }
 
     #endregion
 }

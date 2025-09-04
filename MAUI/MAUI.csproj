@@ -1,19 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-		<!--<TargetFrameworks>net8.0;net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(MSBuildRuntimeType)' == 'Full'">$(TargetFrameworks);net8.0-windows10.0.19041</TargetFrameworks>-->
-		<!--<UseMaui>true</UseMaui>-->
+    <TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(MSBuildRuntimeType)' == 'Full'">$(TargetFrameworks);net9.0-windows10.0.19041</TargetFrameworks>
+		<UseMaui>false</UseMaui>
     <RootNamespace>ILNumerics.Community.MAUI</RootNamespace>
     <AssemblyName>ILNumerics.Community.MAUI</AssemblyName>
+    <AssemblyVersion>7.0.0</AssemblyVersion>
 	</PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-windows10.0.19041.0'">
+    <FrameworkReference Include="Microsoft.Windows.SDK.NET.Ref" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
+  </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="ILNumerics.Computing" Version="7.1.22" />
-    <PackageReference Include="ILNumerics.Drawing" Version="7.1.22" />
-    <PackageReference Include="ILNumerics.Toolboxes.Drawing2" Version="7.1.22" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
-    <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.116.1" />
+    <PackageReference Include="ILNumerics.Computing" Version="7.2.41" />
+    <PackageReference Include="ILNumerics.Drawing" Version="7.2.41" />
+    <PackageReference Include="ILNumerics.Toolboxes.Drawing2" Version="7.2.41" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.100" />
+    <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.0" />
     <PackageReference Include="MinVer" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:maui="clr-namespace:ILNumerics.Community.MAUI;assembly=ILNumerics.Community.MAUI"
+             x:Class="MAUIDemoApp.MainPage">
+
+    <Grid RowDefinitions="Auto,*" ColumnDefinitions="Auto,*" Padding="8">
+        <Picker x:Name="scenePicker"
+                WidthRequest="200"
+                SelectedIndexChanged="ScenePicker_SelectedIndexChanged"
+                HorizontalOptions="Start"
+                VerticalOptions="Start"
+                Grid.Row="0"
+                Grid.Column="0" />
+
+        <maui:Panel x:Name="ilPanel"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="FillAndExpand" />
+    </Grid>
+
+</ContentPage>

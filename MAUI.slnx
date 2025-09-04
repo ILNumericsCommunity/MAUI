@@ -1,6 +1,8 @@
 <Solution>
+  <Folder Name="/Demo/">
+    <Project Path="Demo/MAUIDemo.csproj">
+      <Deploy />
+    </Project>
+  </Folder>
   <Project Path="MAUI/MAUI.csproj" />
-  <Project Path="MAUIDemoApp/MAUIDemoApp.csproj">
-    <Deploy Solution="Debug|*" />
-  </Project>
 </Solution>
