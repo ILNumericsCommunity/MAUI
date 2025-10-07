@@ -32,7 +32,7 @@
 	<!-- Assembly Info -->
 	<PropertyGroup>
 		<Product>ILNumerics.Community.MAUI (by the ILNumerics Community)</Product>
-		<Description>Interop package for ILNumerics (http://ilnumerics.net/) scene graphs and plot cubes with .NET Multi-platform App UI (https://dotnet.microsoft.com/apps/maui) framework.</Description>
+		<Description>Integration package for ILNumerics (http://ilnumerics.net/) scene graphs and plot cubes with .NET Multi-platform App UI (https://dotnet.microsoft.com/apps/maui) framework.</Description>
 		<Authors>Thilo Viereck</Authors>
 		<Company></Company>
 		<Copyright>Copyright &#169; Thilo Viereck &amp; ILNumerics Community 2025-$([System.DateTime]::Now.ToString(`yyyy`))</Copyright>

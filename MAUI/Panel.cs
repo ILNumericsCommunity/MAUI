@@ -317,7 +317,6 @@ public sealed class Panel : SKCanvasView, IDriver
             buttons = MouseButtons.Right;
 
         return new MouseEventArgs(locationF, location, shift, alt, ctrl) { TimeMS = timeMS, Button = buttons, Delta = args.WheelDelta };
-        //return new MouseEventArgs(locationF, location, shift, alt, ctrl) { TimeMS = timeMS, Button = buttons, Clicks = args.ClickCount, Delta = args.WheelDelta };
     }
 
     private MouseEventArgs TappedMouseEvent(TappedEventArgs args, int clickCount, SKSize rect, long timeMS)
