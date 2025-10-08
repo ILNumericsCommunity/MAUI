@@ -24,6 +24,8 @@ public sealed class Panel : SKCanvasView, IDriver
 
     private IModifierKeyService? _modifierKeyService;
 
+    private volatile bool _resizePending = true;
+
     static Panel()
     {
         // Disable GDI+ to ensure consistent rendering across all .NET MAUI platforms (incl. Windows)
@@ -48,6 +50,8 @@ public sealed class Panel : SKCanvasView, IDriver
         var doubleTabRecognizer = new TapGestureRecognizer { NumberOfTapsRequired = 2 };
         doubleTabRecognizer.Tapped += (_, a) => OnDoubleTapped(a);
         GestureRecognizers.Add(doubleTabRecognizer);
+
+        SizeChanged += OnSizeChanged;
 
         EnableTouchEvents = true;
     }
@@ -224,25 +228,42 @@ public sealed class Panel : SKCanvasView, IDriver
 
         var canvas = e.Surface.Canvas;
         var bounds = canvas.LocalClipBounds;
-        var rectangle = new Rectangle(0, 0, (int) bounds.Width, (int) bounds.Height);
 
-        _driver.BackBuffer.Rectangle = rectangle;
+        // Handle pending resize: update driver size (also updates back buffer size)
+        if (_resizePending && bounds.Width > 0 && bounds.Height > 0)
+        {
+            _resizePending = false;
+            _driver.Size = new System.Drawing.Size((int) bounds.Width, (int) bounds.Height);
+        }
+
+        // Render using 'GDI' driver (now also works on non-Windows platforms)
         _driver.Configure();
         _driver.Render();
 
         canvas.Clear();
 
+        // Install back buffer pixels into SKBitmap and draw it on the canvas
         if (_driver.BackBuffer is CommonBackBuffer backBuffer)
         {
             Array<int> pixelBuffer = backBuffer.PixelBuffer;
 
-            var bitmap = new SKBitmap(rectangle.Width, rectangle.Height, SKColorType.Rgba8888, SKAlphaType.Premul);
+            using var bitmap = new SKBitmap(backBuffer.Size.Width, backBuffer.Size.Height, SKColorType.Rgba8888, SKAlphaType.Premul);
             bitmap.InstallPixels(bitmap.Info, pixelBuffer.GetHostPointerForRead(), bitmap.RowBytes);
 
             canvas.DrawBitmap(bitmap, bounds);
         }
         else
-            throw new InvalidOperationException("BackBuffer is not of type CommonBackBuffer.");
+            throw new InvalidOperationException($"BackBuffer is not of type {nameof(CommonBackBuffer)}.");
+    }
+
+    #endregion
+
+    #region SizeChanged handling
+
+    private void OnSizeChanged(object? sender, EventArgs e)
+    {
+        // Mark a resize for next paint
+        _resizePending = true;
     }
 
     #endregion
