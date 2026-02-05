@@ -1,25 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(MSBuildRuntimeType)' == 'Full'">$(TargetFrameworks);net9.0-windows10.0.19041</TargetFrameworks>
+    <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(MSBuildRuntimeType)' == 'Full'">$(TargetFrameworks);net10.0-windows10.0.19041</TargetFrameworks>
 		<UseMaui>false</UseMaui>
     <RootNamespace>ILNumerics.Community.MAUI</RootNamespace>
     <AssemblyName>ILNumerics.Community.MAUI</AssemblyName>
     <AssemblyVersion>7.0.0</AssemblyVersion>
 	</PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-windows10.0.19041.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows10.0.19041.0'">
     <FrameworkReference Include="Microsoft.Windows.SDK.NET.Ref" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="ILNumerics.Computing" Version="7.3.58" />
-    <PackageReference Include="ILNumerics.Drawing" Version="7.3.58" />
-    <PackageReference Include="ILNumerics.Toolboxes.Drawing2" Version="7.3.58" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.110" />
+    <PackageReference Include="ILNumerics.Computing" Version="7.4.16" />
+    <PackageReference Include="ILNumerics.Drawing" Version="7.4.16" />
+    <PackageReference Include="ILNumerics.Toolboxes.Drawing2" Version="7.4.16" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.31" />
     <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.1" />
-    <PackageReference Include="MinVer" Version="6.0.0">
+    <PackageReference Include="MinVer" Version="7.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
