@@ -10,9 +10,9 @@ This package makes it easy to host ILNumerics scene graphs and 2D/3D plot cubes 
 
 ## Compatibility
 
-- .NET: targets `.NET 9`.
-- ILNumerics: `ILNumerics 7.3+`.
-- .NET MAUI: compatible with the .NET MAUI APIs in .NET 9.
+- .NET: targets `.NET 10`.
+- ILNumerics: `ILNumerics 7.4+`.
+- .NET MAUI: compatible with the .NET MAUI APIs in .NET 10.
 
 > Note: Desktop platforms (Windows, Linux, macOS) are working well. There are currently some outstanding issues on mobile platforms; please refer to the issue tracker for details and status updates.
 
@@ -64,7 +64,7 @@ See `Demo/MAUIDemo` for a concrete example of wiring up `IModifierKeyService` an
 
 ## Examples and demos
 
-This repository includes demo projects under the `Demo/` folder showcasing usage across supported MAUI targets. The `MAUIDemo` project demonstrates basic integration and typical usage patterns—run it to see concrete examples and to experiment with different scenes and rendering configurations.
+This repository includes demo projects under the `Demo/` folder showcasing usage across supported MAUI targets. The `MAUIDemo` project demonstrates basic integration and typical usage patterns run it to see concrete examples and to experiment with different scenes and rendering configurations.
 
 ### License
 
