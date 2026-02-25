@@ -219,7 +219,7 @@ public sealed class Panel : SKCanvasView, IDriver
             if (_reusableBitmap is null || _reusableBitmap.Width != width || _reusableBitmap.Height != height)
             {
                 _reusableBitmap?.Dispose();
-                _reusableBitmap = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Premul);
+                _reusableBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
             }
 
             _reusableBitmap.InstallPixels(_reusableBitmap.Info, pixelBuffer.GetHostPointerForRead(), _reusableBitmap.RowBytes);
