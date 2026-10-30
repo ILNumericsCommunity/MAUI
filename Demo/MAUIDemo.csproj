@@ -77,8 +77,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-    <PackageReference Include="ILNumerics.Core" Version="7.4.16" />
-    <PackageReference Include="ILNumerics.Core.Platforms" Version="7.4.16" />
+    <PackageReference Include="ILNumerics.Core" Version="7.4.77" />
+    <PackageReference Include="ILNumerics.Core.Platforms" Version="7.4.77" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.2" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.31" />
